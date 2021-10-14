@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { Button, Card } from 'semantic-ui-react';
+import { Link } from '../routes';
 
 import factory from '../ethereum/factory';
 import Layout from '../components/Layout';
@@ -18,7 +19,11 @@ export default function CampaignIndex(props) {
 		const items = campaigns.map((address) => {
 			return {
 				header: address,
-				description: <a>View Campaign</a>,
+				description: (
+					<Link route={`/campaigns/${address}`}>
+						<a>View Campaign</a>
+					</Link>
+				),
 				fluid: true,
 			};
 		});
@@ -30,7 +35,11 @@ export default function CampaignIndex(props) {
 		<Layout>
 			<div>
 				<h3>Open Campaigns</h3>
-				<Button content="Create Campaign" icon="add circle" floated="right" primary={true} />
+				<Link route="/campaigns/new">
+					<a>
+						<Button content="Create Campaign" icon="add circle" floated="right" primary={true} />
+					</a>
+				</Link>
 				{renderCampaigns()}
 			</div>
 		</Layout>

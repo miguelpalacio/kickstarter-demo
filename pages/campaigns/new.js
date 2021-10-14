@@ -1,12 +1,15 @@
 import React, { useCallback, useState } from 'react';
-import { Button, Form, Input } from 'semantic-ui-react';
+import { Button, Form, Input, Message } from 'semantic-ui-react';
 import Layout from '../../components/Layout';
 
 import factory from '../../ethereum/factory';
 import web3 from '../../ethereum/web3';
+import { Router } from '../../routes';
 
 export default function CampaignNew() {
 	const [minimumContribution, setMinimumContribution] = useState('');
+	const [errorMessage, setErrorMessage] = useState('');
+	const [loading, setLoading] = useState(false);
 
 	/**
 	 *
@@ -15,11 +18,23 @@ export default function CampaignNew() {
 		async (event) => {
 			event.preventDefault();
 
-			const accounts = await web3.eth.getAccounts();
+			if (loading) return; // avoid submitting the same request many times
 
-			await factory.methods.createCampaign(minimumContribution).send({
-				from: accounts[0],
-			});
+			setLoading(true);
+			setErrorMessage('');
+
+			try {
+				const accounts = await web3.eth.getAccounts();
+				await factory.methods.createCampaign(minimumContribution).send({
+					from: accounts[0],
+				});
+
+				Router.pushRoute('/');
+			} catch (error) {
+				setErrorMessage(error.message);
+			}
+
+			setLoading(false);
 		},
 		[minimumContribution]
 	);
@@ -27,7 +42,7 @@ export default function CampaignNew() {
 	return (
 		<Layout>
 			<h3>New Campaign!</h3>
-			<Form onSubmit={onSubmit}>
+			<Form onSubmit={onSubmit} error={!!errorMessage}>
 				<Form.Field>
 					<label>Minimum Contribution</label>
 					<Input
@@ -38,7 +53,10 @@ export default function CampaignNew() {
 					/>
 				</Form.Field>
 
-				<Button primary={true}>Create!</Button>
+				<Message error={true} header="Oops!" content={errorMessage} />
+				<Button primary={true} loading={loading}>
+					Create!
+				</Button>
 			</Form>
 		</Layout>
 	);
